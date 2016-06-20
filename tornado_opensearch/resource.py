@@ -51,22 +51,17 @@ class OpenSearch(APIResource):
         if not dct:
             return None
 
-        return ",".join(
-            "%s:%s" % (k, v) for (k, v) in dct.items()
-        )
+        if isinstance(dct, dict):
+            return ",".join(
+                "%s:%s" % (k, v) for (k, v) in dct.items()
+            )
+
+        return dct
 
     def _make_query_str(self, dct):
-        clauses = {}
-
-        clauses.update(
-            query=dct.get("query"),
-            config=self._pair(dct.get("config")),
-            filter=dct.get("filter"),
-            sort=dct.get("sort"),
-            aggregate=self._pair(dct.get("aggregate")),
-            distinct=self._pair(dct.get("distinct")),
-            kvpairs=self._pair(dct.get("kvpairs"))
-        )
+        clauses = {
+            k: self._pair(v) for k, v in dct.items()
+        }
 
         query_str = "&&".join(
             "%s=%s" % (k, v) for k, v in clauses.items() if v
