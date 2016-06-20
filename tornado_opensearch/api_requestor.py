@@ -1,4 +1,4 @@
-# coding: utf8
+# coding: utf-8
 from datetime import datetime, timezone
 import time
 import hmac
@@ -104,12 +104,12 @@ class Signator(object):
     def get_signature(secret, url):
         """ 取得签名"""
         mac = hmac.new(
-            key=b"%s&" % secret.encode("utf8"),
-            msg=url.encode("utf8"),
+            key=b"%s&" % secret.encode("utf-8"),
+            msg=url.encode("utf-8"),
             digestmod="SHA1"
         )
         signature = base64.b64encode(mac.digest())
-        return signature.decode("utf8")
+        return signature.decode("utf-8")
 
     @staticmethod
     def get_nonce():
@@ -164,7 +164,7 @@ class APIRequestor(Signator):
     def parse_response(self, raw_response):
         """ 解析请求结果并处理错误。"""
         try:
-            response = json.loads(raw_response.body.decode("utf8"))
+            response = json.loads(raw_response.body.decode("utf-8"))
             code = raw_response.code
         except Exception as e:
             raise error.APIError("无法解析应答格式")

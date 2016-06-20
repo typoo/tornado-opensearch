@@ -1,4 +1,4 @@
-# coding: utf8
+# coding: utf-8
 import functools
 import urllib.parse
 
@@ -10,7 +10,7 @@ def urlquote(value):
     """ URL 编码（注意部分符号是不编码的）"""
     if not isinstance(value, str):
         if hasattr(value, "decode"):
-            value = value.decode("utf8")
+            value = value.decode("utf-8")
         else:
             value = str(value)
 

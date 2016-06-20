@@ -1,4 +1,4 @@
-# coding: utf8
+# coding: utf-8
 from tornado_opensearch.resource import *
 from tornado_opensearch.error import *
 
