@@ -47,13 +47,45 @@ class OpenSearch(APIResource):
 
         return tornado.ioloop.IOLoop.current().run_sync(wrapped)
 
+    def _pair(self, dct):
+        if not dct:
+            return None
+
+        return ",".join(
+            "%s:%s" % (k, v) for (k, v) in dct.items()
+        )
+
+    def _make_query_str(self, dct):
+        clauses = {}
+
+        clauses.update(
+            query=dct.get("query"),
+            config=self._pair(dct.get("config")),
+            filter=dct.get("filter"),
+            sort=dct.get("sort"),
+            aggregate=self._pair(dct.get("aggregate")),
+            distinct=self._pair(dct.get("distinct")),
+            kvpairs=self._pair(dct.get("kvpairs"))
+        )
+
+        query_str = "&&".join(
+            "%s=%s" % (k, v) for k, v in clauses.items() if v
+        )
+        return query_str
+
     @coroutine
     def search(self, query, index_name=None, fetch_fields=""):
         """ 搜索"""
         endpoint = "/search"
 
+        if isinstance(query, dict):
+            # 如果不是直接指定字符串，需要拼装搜索子句。
+            query_str = self._make_query_str(query)
+        else:
+            query_str = query
+
         params = {
-            "query": query,
+            "query": query_str,
             "index_name": index_name or self.app_name,
             "fetch_fields": fetch_fields,
             "format": "json",
