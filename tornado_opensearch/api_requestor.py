@@ -15,8 +15,6 @@ from tornado.httpclient import AsyncHTTPClient
 from tornado_opensearch import error
 from tornado_opensearch import util
 
-AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient")
-
 
 logger = logging.getLogger("tornado_opensearch")
 
