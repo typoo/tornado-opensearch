@@ -6,6 +6,7 @@ import base64
 import random
 import json
 import operator
+import logging
 
 import tornado
 from tornado.gen import coroutine
@@ -15,6 +16,9 @@ from tornado_opensearch import error
 from tornado_opensearch import util
 
 AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient")
+
+
+logger = logging.getLogger("tornado_opensearch")
 
 
 class Signator(object):
@@ -139,8 +143,9 @@ class APIRequestor(Signator):
         """
         raw_response = yield self.request_raw(method, endpoint, params, body)
 
+        self.log_request(raw_response)
+
         response = self.parse_response(raw_response)
-        self._trace(response)
 
         return response
 
@@ -156,8 +161,6 @@ class APIRequestor(Signator):
             response = yield self._post(endpoint, params, body)
         else:
             raise error.APIError("Bad request method")
-
-        self._trace(response)
 
         return response
 
@@ -189,6 +192,18 @@ class APIRequestor(Signator):
                 raise error.APIError(message)
 
         return response
+
+    def log_request(self, response):
+        """ 记录请求时间"""
+        if response.code < 400:
+            log_method = logger.info
+        elif response.code < 500:
+            log_method = logger.warning
+        else:
+            log_method = logger.error
+        request_time = 1000.0 * response.request_time
+        log_method("%d %s %.2fms", response.code,
+                   response.effective_url, request_time)
 
     @staticmethod
     def _format_error_message(code, message):
@@ -233,7 +248,7 @@ class APIRequestor(Signator):
             public_params=public_params
         )
 
-    def _trace(self, *args, **kwargs):
+    def _trace(self, *args):
         if self.debug:
             for x in args:
-                print(x)
+                logger.debug(x)
