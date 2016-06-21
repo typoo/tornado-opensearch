@@ -17,6 +17,7 @@ class APIResource(object):
         self.api_key = kwargs.get("api_key")
         self.api_secret = kwargs.get("api_secret")
         self.api_version = kwargs.get("api_version") or API_VERSION
+        self.debug = kwargs.get("debug") or False
 
         self.app_name = kwargs.get("app_name")
 
@@ -26,7 +27,8 @@ class APIResource(object):
             self.api_baseurl,
             self.api_key,
             self.api_secret,
-            self.api_version
+            self.api_version,
+            debug=self.debug
         )
 
         response = yield requestor.request(*args, **kwargs)
@@ -69,22 +71,45 @@ class OpenSearch(APIResource):
         return query_str
 
     @coroutine
-    def search(self, query, index_name=None, fetch_fields=""):
-        """ 搜索"""
+    def search(self, query, index_name=None, fetch_fields="",
+               qp="", disable="", first_formula_name="",
+               formula_name="", summary=""):
+        """ 搜索
+        REF: https://help.aliyun.com/document_detail/29150.html
+        """
         endpoint = "/search"
 
         if hasattr(query, "items"):
-            # 如果不是直接指定字符串，需要拼装搜索子句。
+            # 如果不是直接指定字符串，需要拼装搜索子句
             query_str = self.make_query_str(query)
         else:
             query_str = query
 
+        if isinstance(fetch_fields, (str, bytes)):
+            _fetch_fields = fetch_fields
+        else:
+            # 多个字段用 ";" 隔开
+            _fetch_fields = ";".join(fetch_fields)
+
         params = {
             "query": query_str,
             "index_name": index_name or self.app_name,
-            "fetch_fields": fetch_fields,
             "format": "json",
         }
+
+        _optional_params = {
+            "fetch_fields": _fetch_fields,
+            "qp": qp,
+            "disable": disable,
+            "first_formula_name": first_formula_name,
+            "formula_name": formula_name,
+            "summary": summary,
+        }
+
+        params.update({
+            k: v for k, v in _optional_params.items() if v
+        })
+
         result = yield self.request(
             method="GET",
             endpoint=endpoint,
