@@ -51,14 +51,14 @@ class OpenSearch(APIResource):
         if not dct:
             return None
 
-        if isinstance(dct, dict):
+        if hasattr(dct, "items"):
             return ",".join(
                 "%s:%s" % (k, v) for (k, v) in dct.items()
             )
 
         return dct
 
-    def _make_query_str(self, dct):
+    def make_query_str(self, dct):
         clauses = {
             k: self._pair(v) for k, v in dct.items()
         }
@@ -73,9 +73,9 @@ class OpenSearch(APIResource):
         """ 搜索"""
         endpoint = "/search"
 
-        if isinstance(query, dict):
+        if hasattr(query, "items"):
             # 如果不是直接指定字符串，需要拼装搜索子句。
-            query_str = self._make_query_str(query)
+            query_str = self.make_query_str(query)
         else:
             query_str = query
 
