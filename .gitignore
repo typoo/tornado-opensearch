@@ -91,3 +91,5 @@ ENV/
 bin/
 include/
 pip-selfcheck.json
+
+.DS_Store
