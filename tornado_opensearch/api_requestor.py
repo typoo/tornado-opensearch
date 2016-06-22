@@ -141,8 +141,6 @@ class APIRequestor(Signator):
         """
         raw_response = yield self.request_raw(method, endpoint, params, body)
 
-        self.log_request(raw_response)
-
         response = self.parse_response(raw_response)
 
         return response
@@ -200,8 +198,12 @@ class APIRequestor(Signator):
         else:
             log_method = logger.error
         request_time = 1000.0 * response.request_time
-        log_method("%d %s %.2fms", response.code,
-                   response.effective_url, request_time)
+        log_method(
+            "%d %s %.2fms",
+            response.code,
+            response.effective_url,
+            request_time
+        )
 
     @staticmethod
     def _format_error_message(code, message):
@@ -211,7 +213,7 @@ class APIRequestor(Signator):
     def _get(self, endpoint, params):
         url = self.sign_url(method="GET", endpoint=endpoint, params=params)
         request = tornado.httpclient.HTTPRequest(url=url)
-        response = yield self._client.fetch(request)
+        response = yield self._client.fetch(request, callback=self.log_request)
         return response
 
     @coroutine
@@ -226,7 +228,7 @@ class APIRequestor(Signator):
                 "Content-Type": "application/x-www-form-urlencoded",
             }
         )
-        response = yield self._client.fetch(request)
+        response = yield self._client.fetch(request, callback=self.log_request)
         return response
 
     def sign_url(self, method, endpoint, params=None, public_params=None):
