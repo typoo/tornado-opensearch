@@ -1,6 +1,5 @@
 # coding: utf-8
 from unittest import mock
-from collections import OrderedDict
 
 from tornado.gen import coroutine
 from tornado.testing import AsyncTestCase, gen_test
@@ -64,14 +63,14 @@ class TestOpenSearch(AsyncTestCase):
             result = api.make_query_str(q)
             self.assertEqual(result, expected)
 
-        assertQuery(OrderedDict({
+        assertQuery({
             "query": "(keyword:'碎花' OR default:'爆款') AND keyword:'连衣裙'",
-        }), "query=(keyword:'碎花' OR default:'爆款') AND keyword:'连衣裙'")
+        }, "query=(keyword:'碎花' OR default:'爆款') AND keyword:'连衣裙'")
 
-        assertQuery(OrderedDict((
-            ("config", OrderedDict((
-                ("start", 1),
-                ("hit", 2),
-            ))),
-            ("query", "keyword:'test'")
-        )), "query=keyword:'test'&&config=start:1,hit:2")
+        assertQuery({
+            "config": {
+                "start": 1,
+                "hit": 2,
+            },
+            "query": "keyword:'test'",
+        }, "config=hit:2,start:1&&query=keyword:'test'")
