@@ -1,6 +1,7 @@
 # coding: utf-8
 import functools
 import urllib.parse
+import operator
 
 
 _quote = functools.partial(urllib.parse.quote, safe="-_.~")
@@ -15,3 +16,11 @@ def urlquote(value):
             value = str(value)
 
     return _quote(value)
+
+
+def items_key_ascending(dct):
+    """按 key 的升序取得字典的 items"""
+    return sorted(
+        dct.items(),
+        key=operator.itemgetter(0)
+    )

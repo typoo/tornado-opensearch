@@ -1,6 +1,5 @@
 # coding: utf-8
 import json
-import operator
 
 import tornado
 from tornado.gen import coroutine
@@ -56,10 +55,8 @@ class OpenSearch(APIResource):
 
         if hasattr(dct, "items"):
             return ",".join(
-                "%s:%s" % (k, v) for (k, v) in sorted(
-                    dct.items(),
-                    key=operator.itemgetter(0)
-                )
+                "%s:%s" % (k, v)
+                for (k, v) in util.items_key_ascending(dct)
             )
 
         return dct
@@ -67,18 +64,13 @@ class OpenSearch(APIResource):
     def make_query_str(self, dct):
         clauses = {
             k: self._pair(v)
-            for k, v in sorted(
-                dct.items(),
-                key=operator.itemgetter(0)
-            )
+            for k, v in util.items_key_ascending(dct)
         }
 
         query_str = "&&".join(
             "%s=%s" % (k, v)
-            for k, v in sorted(
-                clauses.items(),
-                key=operator.itemgetter(0)
-            ) if v
+            for k, v in util.items_key_ascending(clauses)
+            if v
         )
         return query_str
 

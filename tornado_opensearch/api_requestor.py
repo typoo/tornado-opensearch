@@ -96,10 +96,7 @@ class Signator(object):
         """
         return "&".join(
             "%s=%s" % (util.urlquote(k), util.urlquote(v))
-            for k, v in sorted(
-                query.items(),
-                key=operator.itemgetter(0)
-            )
+            for k, v in util.items_key_ascending(query)
         )
 
     @staticmethod
