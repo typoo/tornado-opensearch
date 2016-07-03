@@ -13,7 +13,7 @@ class DummyAPIRequestor(mock.MagicMock):
         return {"success": "OK"}
 
 
-class TestOpenSearch(AsyncTestCase):
+class OpenSearchTests(AsyncTestCase):
     maxDiff = 1000
 
     def setUp(self):

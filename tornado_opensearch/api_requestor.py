@@ -163,7 +163,7 @@ class APIRequestor(Signator):
             response = json.loads(raw_response.body.decode("utf-8"))
             code = raw_response.code
         except Exception as e:
-            raise error.APIError("无法解析应答格式")
+            raise error.APIError("无法解析应答格式") from e
 
         if not (200 <= code < 400):
             raise error.APIError("请求失败 status: %s" % code)

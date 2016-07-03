@@ -3,18 +3,14 @@ from unittest import mock
 from collections import OrderedDict
 
 from tornado.gen import coroutine
+from tornado.concurrent import Future
 from tornado.testing import AsyncTestCase, gen_test
 
 import tornado_opensearch.api_requestor as api_requestor
+import tornado_opensearch.error as error
 
 
-class DummyAPIRequestor(mock.MagicMock):
-    @coroutine
-    def request(self, *args, **kwargs):
-        return {"success": "OK"}
-
-
-class TestSingator(AsyncTestCase):
+class SingatorTests(AsyncTestCase):
     """ 签名逻辑测试"""
     maxDiff = 1000
 
@@ -77,3 +73,51 @@ class TestSingator(AsyncTestCase):
 
         # 因参数顺序不同，在此只比较长度
         self.assertEqual(len(result), len(expected))
+
+
+class APIRequestorTests(AsyncTestCase):
+    """ 请求测试"""
+    maxDiff = 1000
+
+    def setUp(self):
+        super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+
+    def _make_one(self):
+        return api_requestor.APIRequestor(
+            api_baseurl="",
+            api_key="",
+            api_secret="",
+            api_version="",
+            debug=False
+        )
+
+    @gen_test
+    def test_request_ok(self):
+        with mock.patch("tornado_opensearch.api_requestor.AsyncHTTPClient", autospec=True) as M:
+            fut = Future()
+            fut.set_result(mock.Mock(
+                code=200, request_time=0.1, effective_url="",
+                body='{"status": "OK"}'.encode("utf8")
+            ))
+            M.return_value.fetch.return_value = fut
+            requestor = self._make_one()
+            result = yield requestor.request("GET", "", {})
+            self.assertEqual(result["status"], "OK")
+
+    @gen_test
+    def test_request_500(self):
+        with mock.patch("tornado_opensearch.api_requestor.AsyncHTTPClient", autospec=True) as M:
+            fut = Future()
+            M.return_value.fetch.return_value = fut
+            requestor = self._make_one()
+
+            fut.set_result(mock.Mock(
+                code=500, request_time=0.1, effective_url="",
+                body='{"status": "FAIL"}'.encode("utf8")
+            ))
+
+            with self.assertRaises(error.APIError):
+                result = yield requestor.request("POST", "", {}, "")
